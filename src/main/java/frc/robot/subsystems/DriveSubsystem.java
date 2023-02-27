@@ -28,8 +28,8 @@ public class DriveSubsystem extends SubsystemBase {
   CANSparkMax t3 = new CANSparkMax(3, MotorType.kBrushless);
   CANSparkMax t4 = new CANSparkMax(4, MotorType.kBrushless);
 
-  MotorControllerGroup m_left = new MotorControllerGroup(t3, t4);
-  MotorControllerGroup m_right = new MotorControllerGroup(t1,t2);
+  MotorControllerGroup m_left = new MotorControllerGroup(t3 , t4);
+  MotorControllerGroup m_right = new MotorControllerGroup(t1 ,t2);
 
   DifferentialDrive m_drive = new DifferentialDrive(m_right, m_left);
 
@@ -49,6 +49,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     t1.setInverted(true);
     t2.setInverted(true);
+    t3.setInverted(true);
 
   }
 
