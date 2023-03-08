@@ -19,6 +19,7 @@ public class IntakeSubsystem extends SubsystemBase{
 
   public IntakeSubsystem() {
   }
+  
 /**
  * Function for spinning the intake motors/intaking objects
  * @param power decimal power from -1.0 to 1.0 applied to the intake motor
@@ -29,11 +30,32 @@ public class IntakeSubsystem extends SubsystemBase{
     intSpin2.set(power);
 
   }
+
 /**
  * Function to stop the spinning of the intake motors
  */
   public void stopIntake() {
 
+    intSpin1.set(0);
+    intSpin2.set(0);
+
+  }
+
+  /**
+   * Method to control the flipping up and down of the intake
+   * @param power power value from -1 to 1 for motor (+ up, - down)
+   */
+  public void flipIntake(double power) {
+
+    intFlip1.set(power);
+    intFlip2.set(power);
+
+  }
+
+  public void shutDownIntake() {
+
+    intFlip1.set(0);
+    intFlip2.set(0);
     intSpin1.set(0);
     intSpin2.set(0);
 

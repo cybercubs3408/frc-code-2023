@@ -4,6 +4,14 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
 //import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Encoder;
@@ -14,6 +22,9 @@ import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 // import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+
+import java.time.Clock;
 
 import com.ctre.phoenix.motorcontrol.can.*;
 import com.revrobotics.CANSparkMax;
@@ -23,10 +34,16 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 public class DriveSubsystem extends SubsystemBase {
 
-  CANSparkMax t1 = new CANSparkMax(1, MotorType.kBrushless);
-  CANSparkMax t2 = new CANSparkMax(2, MotorType.kBrushless);
-  CANSparkMax t3 = new CANSparkMax(3, MotorType.kBrushless);
-  CANSparkMax t4 = new CANSparkMax(4, MotorType.kBrushless);
+  static CANSparkMax t1 = new CANSparkMax(1, MotorType.kBrushless);
+  static CANSparkMax t2 = new CANSparkMax(2, MotorType.kBrushless); // Front
+  static CANSparkMax t3 = new CANSparkMax(3, MotorType.kBrushless);
+  static CANSparkMax t4 = new CANSparkMax(4, MotorType.kBrushless); // Front
+
+  //Below code is for testing on talon machines. When the below code is being run, please comment out the code directly above
+  //TalonSRX t1 = new TalonSRX(1);
+  //TalonSRX t2 = new TalonSRX(2); // Front
+  //TalonSRX t3 = new TalonSRX(3);
+  //TalonSRX t4 = new TalonSRX(4); // Front
 
   MotorControllerGroup m_left = new MotorControllerGroup(t3 , t4);
   MotorControllerGroup m_right = new MotorControllerGroup(t1 ,t2);
@@ -38,6 +55,16 @@ public class DriveSubsystem extends SubsystemBase {
 
   // The gyro sensor
   ADIS16470_IMU m_gyro = new ADIS16470_IMU();
+
+  public DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(28));
+  DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(getHeading(), m_leftEncoder.getPosition(), m_rightEncoder.getPosition());
+
+SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(getLeftEncoder(), getRightEncoder(), getLeftEncoder());
+
+PIDController leftPIDController = new PIDController(9.95,0,0);
+PIDController rightPIDController = new PIDController (9.95,0,0);
+
+  Pose2d pose;
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
@@ -61,6 +88,70 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void tankDrive(double left, double right) {
     m_drive.tankDrive(left, -right);
+  }
+
+  public static void driveTest(){
+    
+    t1.set(s); 
+    
+    MyTimer timer = new mytimer();
+
+
+    
+    t4.set(0.3);
+    }
+
+  
+
+  public void tankDriveVolts(double leftVolts, double rightVolts) {
+
+    m_left.setVoltage(leftVolts);
+    m_right.setVoltage(rightVolts);
+    m_drive.feed();
+
+  }
+
+  public Rotation2d getHeading(){
+    return Rotation2d.fromDegrees(-m_gyro.getAngle());
+  }
+
+  public DifferentialDriveWheelSpeeds getSpeeds() {
+    return new DifferentialDriveWheelSpeeds(
+    t2.getEncoder().getVelocity() / 7.9 * 2 * Math.PI * Units.inchesToMeters(3.0) / 60,
+    t4.getEncoder().getVelocity() / 7.9 * 2 * Math.PI * Units.inchesToMeters(3.0) / 60
+    );
+  }
+
+  public DifferentialDriveKinematics getKinematics(){
+    return kinematics;
+  }
+
+  public SimpleMotorFeedforward getFeedforward(){
+    return feedforward;
+  }
+
+  public Pose2d getPose(){
+      return pose;
+  }
+
+  public void setOutput (double leftVolts, double rightVolts){
+
+    t2.set(leftVolts / 12);
+    t4.set (rightVolts / 12);
+
+  }
+
+public PIDController getLeftPIDController(){
+  return leftPIDController;
+}
+
+public PIDController getRightPIDController(){
+  return rightPIDController;
+}
+
+
+  public void periodic(){
+    pose = odometry.update(getHeading(), m_leftEncoder.getPosition(), m_rightEncoder.getPosition() );
   }
 
   public void stopMotors() {
@@ -99,12 +190,16 @@ public class DriveSubsystem extends SubsystemBase {
     m_gyro.reset();
   }
 
+public void reset(){
+  odometry.resetPosition(getHeading(), getLeftEncoder(), getHeading2(), pose);;
+}
+
   /**
    * Returns the heading of the robot.
    *
    * @return the robot's heading in degrees, from 180 to 180
    */
-  public double getHeading() {
+  public double getHeading2() {
     return m_gyro.getYComplementaryAngle();
   }
 }

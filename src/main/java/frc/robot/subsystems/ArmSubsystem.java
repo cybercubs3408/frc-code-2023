@@ -12,4 +12,8 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 public class ArmSubsystem {
     
+    CANSparkMax flippy1 = new CANSparkMax(21, MotorType.kBrushless);
+    CANSparkMax flippy2 = new CANSparkMax(22, MotorType.kBrushless);
+    CANSparkMax tele = new CANSparkMax(23, MotorType.kBrushless);
+
 }
